@@ -74,7 +74,7 @@ public class WasapiClient {
     /**
      * A boolean indicating whether to log the headers in the requests.
      */
-    boolean printHeaders = Boolean.parseBoolean(ContextStore.get("log-headers", "true"));
+    boolean logHeaders = Boolean.parseBoolean(ContextStore.get("log-headers", "true"));
 
     /**
      * A boolean indicating whether to log detailed information in the requests.
@@ -87,9 +87,9 @@ public class WasapiClient {
     boolean hostnameVerification = Boolean.parseBoolean(ContextStore.get("verify-hostname", "true"));
 
     /**
-     * A boolean indicating whether to print request body in the outgoing requests.
+     * A boolean indicating whether to log request body in the outgoing requests.
      */
-    boolean printRequestBody = Boolean.parseBoolean(ContextStore.get("print-request-body", "false"));
+    boolean logRequestBody = Boolean.parseBoolean(ContextStore.get("log-request-body", "false"));
 
     /**
      * Connection timeout in seconds.
@@ -174,7 +174,7 @@ public class WasapiClient {
      *     <li>A network interceptor for modifying requests before execution.</li>
      * </ul>
      * The interceptor ensures headers are set, logs the request body if enabled,
-     * and prints headers when required.
+     * and logs headers when required.
      *
      * @return a configured OkHttpClient instance
      */
@@ -211,7 +211,7 @@ public class WasapiClient {
                                             String.valueOf(Objects.requireNonNull(request.body()).contentType()))
                                     .build();
 
-                        if (printRequestBody) {
+                        if (logRequestBody) {
                             Request cloneRequest = request.newBuilder().build();
                             if (cloneRequest.body()!= null){
                                 Buffer buffer = new Buffer();
@@ -229,7 +229,7 @@ public class WasapiClient {
                             else log.warning("Request body is null!");
                         }
                     }
-                    if (printHeaders)
+                    if (logHeaders)
                         log.info(("Headers(" + request.headers().size() + "): \n" + request.headers()).trim());
                     return chain.proceed(request);
                 }).build();
@@ -276,10 +276,10 @@ public class WasapiClient {
          */
         public Builder() {
             generator = new WasapiClient();
-            generator.printHeaders = Boolean.parseBoolean(ContextStore.get("log-headers", "true"));
+            generator.logHeaders = Boolean.parseBoolean(ContextStore.get("log-headers", "true"));
             generator.detailedLogging = Boolean.parseBoolean(ContextStore.get("detailed-logging", "false"));
             generator.hostnameVerification = Boolean.parseBoolean(ContextStore.get("verify-hostname", "true"));
-            generator.printRequestBody = Boolean.parseBoolean(ContextStore.get("print-request-body", "false"));
+            generator.logRequestBody = Boolean.parseBoolean(ContextStore.get("log-request-body", "false"));
             generator.connectionTimeout = Integer.parseInt(ContextStore.get("connection-timeout", "60"));
             generator.readTimeout = Integer.parseInt(ContextStore.get("connection-read-timeout", "30"));
             generator.writeTimeout = Integer.parseInt(ContextStore.get("connection-write-timeout", "30"));
@@ -306,18 +306,18 @@ public class WasapiClient {
         }
 
         /**
-         * Enables or disables printing of request/response headers.
+         * Enables or disables logging of request/response headers.
          */
-        public Builder printHeaders(boolean enabled) {
-            generator.printHeaders = enabled;
+        public Builder logHeaders(boolean enabled) {
+            generator.logHeaders = enabled;
             return this;
         }
 
         /**
-         * Enables or disables printing of request body.
+         * Enables or disables logging of request body.
          */
         public Builder logRequestBody(boolean enabled) {
-            generator.printRequestBody = enabled;
+            generator.logRequestBody = enabled;
             return this;
         }
 

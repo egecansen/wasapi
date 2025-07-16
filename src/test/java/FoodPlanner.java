@@ -9,7 +9,7 @@ public class FoodPlanner extends WasapiUtilities {
 
     FoodPlannerServices petStoreServices = new WasapiClient.Builder()
             .logRequestBody(true)
-            .printHeaders(true)
+            .logHeaders(true)
             .build(FoodPlannerServices.class);
 
     public SimpleMessageResponseModel signUp(UserSignUpModel userSignUpModel){
@@ -35,7 +35,7 @@ public class FoodPlanner extends WasapiUtilities {
                                     .build()
                     )
                     .logRequestBody(true)
-                    .printHeaders(true)
+                    .logHeaders(true)
                     .build(FoodPlannerServices.Authorized.class);
         }
 

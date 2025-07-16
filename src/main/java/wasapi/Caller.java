@@ -35,7 +35,7 @@ public abstract class Caller {
     /**
      * A static boolean variable that determines whether logs should be kept for API calls.
      */
-    public static boolean keepLogs;
+    public static boolean logResponseBody;
 
     /**
      * A Printer object for logging.
@@ -46,7 +46,7 @@ public abstract class Caller {
      * Constructs a wasapi.Caller object and initializes the ObjectMapper object and the keepLogs variable.
      */
     public Caller(){
-        keepLogs = Boolean.parseBoolean(PropertyUtilities.getProperty("keep-api-logs", "true"));
+        logResponseBody = Boolean.parseBoolean(PropertyUtilities.getProperty("keep-api-logs", "true"));
     }
 
     /**
@@ -91,8 +91,19 @@ public abstract class Caller {
     protected static <SuccessModel, ReturnType> ReturnType perform(
             Call<SuccessModel> call,
             Class<?>... errorModels){
-        Response<?> response = call(call, false, false, getPreviousMethodName());
+        Response<?> response = call(call, false, logResponseBody, getPreviousMethodName());
         return response.isSuccessful() ? (ReturnType) response.body() : getErrorBody(response, errorModels);
+    }
+
+    /**
+     * Gets the response from an API call and logs the results.
+     *
+     * @param call the Call object representing the API call
+     * @return the Response object representing the API response
+     * @throws FailedCallException if the call is strict and the response is not successful
+     */
+    protected static <Model> Response<Model> getResponse(Call<Model> call){
+        return call(call, false, logResponseBody, getPreviousMethodName());
     }
 
     /**
@@ -104,7 +115,7 @@ public abstract class Caller {
      * @return the Response object representing the API response
      * @throws FailedCallException if the call is strict and the response is not successful
      */
-    protected static <Model> Response<Model> getResponse(Call<Model> call, Boolean strict, Boolean printBody){
+    protected static <Model> Response<Model> getResponse(Call<Model> call, boolean strict, boolean printBody){
         return call(call, strict, printBody, getPreviousMethodName());
     }
 
@@ -117,7 +128,7 @@ public abstract class Caller {
      * @return the Response object representing the API response
      * @throws FailedCallException if the call is strict and the response is not successful
      */
-    protected static <Model> Response<Model> getResponse(String serviceName, Call<Model> call, Boolean strict, Boolean printBody){
+    protected static <Model> Response<Model> getResponse(String serviceName, Call<Model> call, boolean strict, boolean printBody){
         return call(call, strict, printBody, serviceName);
     }
 
@@ -140,8 +151,8 @@ public abstract class Caller {
      */
     protected static <SuccessModel, ErrorModel> ResponsePair<Response<SuccessModel>, ErrorModel> getResponse(
             Call<SuccessModel> call,
-            Boolean strict,
-            Boolean printBody,
+            boolean strict,
+            boolean printBody,
             Class<?>... errorModels
     ){
         Response<SuccessModel> response = call(call, strict, printBody, getPreviousMethodName());
@@ -164,8 +175,8 @@ public abstract class Caller {
             String contentType = response.headers().get("content-type");
             boolean printableResponse = contentType != null && contentType.contains("application/json");
             T body = response.body();
-            if (keepLogs) log.success("The response code is: " + response.code());
-            if (keepLogs && !response.message().isEmpty()) log.info(response.message());
+            if (logResponseBody) log.success("The response code is: " + response.code());
+            if (logResponseBody && !response.message().isEmpty()) log.info(response.message());
             if (printBody && printableResponse) log.info("The response body is: \n" + getJsonString(body));
             return Response.success(body, response.raw());
         }
@@ -224,7 +235,7 @@ public abstract class Caller {
      * @param serviceName  The name of the service being called.
      */
     private static <T> void printCallSpecifications(Call<T> call, String serviceName){
-        if (keepLogs)
+        if (logResponseBody)
             log.info("Performing " +
                     StringUtilities.markup(PALE, call.request().method()) +
                     " call for '" +
@@ -299,7 +310,7 @@ public abstract class Caller {
      * @return a boolean indicating whether logs are being kept for API calls
      */
     public static boolean keepsLogs() {
-        return keepLogs;
+        return logResponseBody;
     }
 
     /**
@@ -308,6 +319,6 @@ public abstract class Caller {
      * @param keepLogs a boolean indicating whether logs should be kept for API calls
      */
     public static void keepLogs(boolean keepLogs) {
-        Caller.keepLogs = keepLogs;
+        Caller.logResponseBody = keepLogs;
     }
 }
